@@ -1,6 +1,10 @@
 #![feature(test)]
 extern crate test;
 use rug::Float;
+use rustc_apfloat::{
+    ieee::{Double, Half, Quad, Single},
+    Round,
+};
 use simple_soft_float::{F128, F16, F32, F64};
 use softfloat_sys::*;
 use std::ops::{Add, Div, Mul};
@@ -54,6 +58,20 @@ mod f16 {
     }
 
     #[bench]
+    fn add_rustc_apfloat(b: &mut Bencher) {
+        use rustc_apfloat::Float;
+        b.iter(|| {
+            let a = test::black_box(0x1234);
+            let b = test::black_box(0x7654);
+            let a = Half::from_bits(a as u128);
+            let b = Half::from_bits(b as u128);
+            let d = a.add_r(b, Round::NearestTiesToEven);
+            assert_eq!(d.value.to_bits(), 30292);
+            d
+        });
+    }
+
+    #[bench]
     fn mul_simple_soft_float(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x1234);
@@ -98,6 +116,20 @@ mod f16 {
     }
 
     #[bench]
+    fn mul_rustc_apfloat(b: &mut Bencher) {
+        use rustc_apfloat::Float;
+        b.iter(|| {
+            let a = test::black_box(0x1234);
+            let b = test::black_box(0x7654);
+            let a = Half::from_bits(a as u128);
+            let b = Half::from_bits(b as u128);
+            let d = a.mul_r(b, Round::NearestTiesToEven);
+            assert_eq!(d.value.to_bits(), 19688);
+            d
+        });
+    }
+
+    #[bench]
     fn div_simple_soft_float(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x7654);
@@ -137,6 +169,20 @@ mod f16 {
             let d = a.div(b);
             let d = half::f16::from_f32(d.to_f32());
             assert_eq!(d.to_bits(), 31744);
+            d
+        });
+    }
+
+    #[bench]
+    fn div_rustc_apfloat(b: &mut Bencher) {
+        use rustc_apfloat::Float;
+        b.iter(|| {
+            let a = test::black_box(0x7654);
+            let b = test::black_box(0x1234);
+            let a = Half::from_bits(a as u128);
+            let b = Half::from_bits(b as u128);
+            let d = a.div_r(b, Round::NearestTiesToEven);
+            assert_eq!(d.value.to_bits(), 31744);
             d
         });
     }
@@ -185,6 +231,20 @@ mod f32 {
     }
 
     #[bench]
+    fn add_rustc_apfloat(b: &mut Bencher) {
+        use rustc_apfloat::Float;
+        b.iter(|| {
+            let a = test::black_box(0x12345667);
+            let b = test::black_box(0x76543210);
+            let a = Single::from_bits(a as u128);
+            let b = Single::from_bits(b as u128);
+            let d = a.add_r(b, Round::NearestTiesToEven);
+            assert_eq!(d.value.to_bits(), 1985229328);
+            d
+        });
+    }
+
+    #[bench]
     fn mul_simple_soft_float(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x12345667);
@@ -224,6 +284,20 @@ mod f32 {
     }
 
     #[bench]
+    fn mul_rustc_apfloat(b: &mut Bencher) {
+        use rustc_apfloat::Float;
+        b.iter(|| {
+            let a = test::black_box(0x12345667);
+            let b = test::black_box(0x76543210);
+            let a = Single::from_bits(a as u128);
+            let b = Single::from_bits(b as u128);
+            let d = a.mul_r(b, Round::NearestTiesToEven);
+            assert_eq!(d.value.to_bits(), 1226144465);
+            d
+        });
+    }
+
+    #[bench]
     fn div_simple_soft_float(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x76543210);
@@ -258,6 +332,20 @@ mod f32 {
             let b = Float::with_val(24, f32::from_bits(b));
             let d = a.div(b);
             assert_eq!(d.to_f32().to_bits(), 2139095040);
+            d
+        });
+    }
+
+    #[bench]
+    fn div_rustc_apfloat(b: &mut Bencher) {
+        use rustc_apfloat::Float;
+        b.iter(|| {
+            let a = test::black_box(0x76543210);
+            let b = test::black_box(0x12345667);
+            let a = Single::from_bits(a as u128);
+            let b = Single::from_bits(b as u128);
+            let d = a.div_r(b, Round::NearestTiesToEven);
+            assert_eq!(d.value.to_bits(), 2139095040);
             d
         });
     }
@@ -306,6 +394,20 @@ mod f64 {
     }
 
     #[bench]
+    fn add_rustc_apfloat(b: &mut Bencher) {
+        use rustc_apfloat::Float;
+        b.iter(|| {
+            let a = test::black_box(0x12345667ffffffffu64);
+            let b = test::black_box(0x76543210aaaaaaaau64);
+            let a = Double::from_bits(a as u128);
+            let b = Double::from_bits(b as u128);
+            let d = a.add_r(b, Round::NearestTiesToEven);
+            assert_eq!(d.value.to_bits(), 8526495041683368618u128);
+            d
+        });
+    }
+
+    #[bench]
     fn mul_simple_soft_float(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x12345667ffffffff);
@@ -340,6 +442,20 @@ mod f64 {
             let b = Float::with_val(53, f64::from_bits(b));
             let d = a.mul(b);
             assert_eq!(d.to_f64().to_bits(), 5231401168203612158u64);
+            d
+        });
+    }
+
+    #[bench]
+    fn mul_rustc_apfloat(b: &mut Bencher) {
+        use rustc_apfloat::Float;
+        b.iter(|| {
+            let a = test::black_box(0x12345667ffffffffu64);
+            let b = test::black_box(0x76543210aaaaaaaau64);
+            let a = Double::from_bits(a as u128);
+            let b = Double::from_bits(b as u128);
+            let d = a.mul_r(b, Round::NearestTiesToEven);
+            assert_eq!(d.value.to_bits(), 5231401168203612158u128);
             d
         });
     }
@@ -382,6 +498,20 @@ mod f64 {
             d
         });
     }
+
+    #[bench]
+    fn div_rustc_apfloat(b: &mut Bencher) {
+        use rustc_apfloat::Float;
+        b.iter(|| {
+            let a = test::black_box(0x76543210aaaaaaaau64);
+            let b = test::black_box(0x12345667ffffffffu64);
+            let a = Double::from_bits(a as u128);
+            let b = Double::from_bits(b as u128);
+            let d = a.div_r(b, Round::NearestTiesToEven);
+            assert_eq!(d.value.to_bits(), 9218868437227405312u128);
+            d
+        });
+    }
 }
 
 mod f128 {
@@ -421,6 +551,23 @@ mod f128 {
     }
 
     #[bench]
+    fn add_rustc_apfloat(b: &mut Bencher) {
+        use rustc_apfloat::Float;
+        b.iter(|| {
+            let a = test::black_box(0x12345667ffffffffccccccccccccccccu128);
+            let b = test::black_box(0x76543210aaaaaaaaccccccccccccccccu128);
+            let a = Quad::from_bits(a);
+            let b = Quad::from_bits(b);
+            let d = a.add_r(b, Round::NearestTiesToEven);
+            assert_eq!(
+                d.value.to_bits(),
+                157286071879686556347165517936193227980u128
+            );
+            d
+        });
+    }
+
+    #[bench]
     fn mul_simple_soft_float(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x12345667ffffffffccccccccccccccccu128);
@@ -454,6 +601,23 @@ mod f128 {
     }
 
     #[bench]
+    fn mul_rustc_apfloat(b: &mut Bencher) {
+        use rustc_apfloat::Float;
+        b.iter(|| {
+            let a = test::black_box(0x12345667ffffffffccccccccccccccccu128);
+            let b = test::black_box(0x76543210aaaaaaaaccccccccccccccccu128);
+            let a = Quad::from_bits(a);
+            let b = Quad::from_bits(b);
+            let d = a.mul_r(b, Round::NearestTiesToEven);
+            assert_eq!(
+                d.value.to_bits(),
+                96418871070149102153708677870054030703u128
+            );
+            d
+        });
+    }
+
+    #[bench]
     fn div_simple_soft_float(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x76543210aaaaaaaaccccccccccccccccu128);
@@ -483,6 +647,23 @@ mod f128 {
             x |= (d.v[1] as u128) << 64;
             assert_eq!(x, 170135991163610696904058773219554885632u128);
             x
+        });
+    }
+
+    #[bench]
+    fn div_rustc_apfloat(b: &mut Bencher) {
+        use rustc_apfloat::Float;
+        b.iter(|| {
+            let a = test::black_box(0x76543210aaaaaaaaccccccccccccccccu128);
+            let b = test::black_box(0x12345667ffffffffccccccccccccccccu128);
+            let a = Quad::from_bits(a as u128);
+            let b = Quad::from_bits(b as u128);
+            let d = a.div_r(b, Round::NearestTiesToEven);
+            assert_eq!(
+                d.value.to_bits(),
+                170135991163610696904058773219554885632u128
+            );
+            d
         });
     }
 }

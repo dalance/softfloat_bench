@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 simple-soft-float = "0.1.0"
-softfloat-sys = "0.1.1"
+softfloat-sys = "0.1.2"
 rug = "1.10.0"
 half = "1.6.0"
+rustc_apfloat = "0.1.3"
