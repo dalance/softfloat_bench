@@ -4,5 +4,7 @@ Rust softfloat libarary benchmark
 * [softfloat-sys](https://crates.io/crates/softfloat-sys/)
 * [simple-soft-float](https://crates.io/crates/simple-soft-float)
 * [rug](https://crates.io/crates/rug)
+* [rust_apfloat](https://github.com/rust-lang/rustc_apfloat)
+* [softfloat-pure](https://github.com/HarryR/softfloat-pure)
 
-![image](https://user-images.githubusercontent.com/4331004/88777686-754c0b80-d1c2-11ea-9f79-68b14f4d5278.png)
+![image](benchmark_graphs/combined_benchmark.png)

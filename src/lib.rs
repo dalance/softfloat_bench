@@ -5,6 +5,7 @@ use rustc_apfloat::{
     ieee::{Double, Half, Quad, Single},
     Round,
 };
+use softfloat_pure;
 use simple_soft_float::{F128, F16, F32, F64};
 use softfloat_sys::*;
 use std::ops::{Add, Div, Mul};
@@ -218,6 +219,19 @@ mod f32 {
     }
 
     #[bench]
+    fn add_softfloat_pure(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x12345667);
+            let b = test::black_box(0x76543210);
+            let a = softfloat_pure::float32_t { v: a };
+            let b = softfloat_pure::float32_t { v: b };
+            let d = softfloat_pure::softfloat::f32_add(a, b, 0, 0);
+            assert_eq!(d.0.v, 1985229328);
+            d
+        });
+    }
+
+    #[bench]
     fn add_rug(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x12345667);
@@ -271,6 +285,19 @@ mod f32 {
     }
 
     #[bench]
+    fn mul_softfloat_pure(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x12345667);
+            let b = test::black_box(0x76543210);
+            let a = softfloat_pure::float32_t { v: a };
+            let b = softfloat_pure::float32_t { v: b };
+            let d = softfloat_pure::softfloat::f32_mul(a, b, 0, 0);
+            assert_eq!(d.0.v, 1226144465);
+            d
+        });
+    }
+
+    #[bench]
     fn mul_rug(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x12345667);
@@ -319,6 +346,19 @@ mod f32 {
             let b = float32_t { v: b };
             let d = unsafe { f32_div(a, b) };
             assert_eq!(d.v, 2139095040);
+            d
+        });
+    }
+
+    #[bench]
+    fn div_softfloat_pure(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x76543210);
+            let b = test::black_box(0x12345667);
+            let a = softfloat_pure::float32_t { v: a };
+            let b = softfloat_pure::float32_t { v: b };
+            let d = softfloat_pure::softfloat::f32_div(a, b, 0, 0);
+            assert_eq!(d.0.v, 2139095040);
             d
         });
     }
@@ -381,6 +421,19 @@ mod f64 {
     }
 
     #[bench]
+    fn add_softfloat_pure(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x12345667ffffffff);
+            let b = test::black_box(0x76543210aaaaaaaa);
+            let a = softfloat_pure::float64_t { v: a };
+            let b = softfloat_pure::float64_t { v: b };
+            let d = softfloat_pure::softfloat::f64_add(a, b, 0, 0);
+            assert_eq!(d.0.v, 8526495041683368618u64);
+            d
+        });
+    }
+
+    #[bench]
     fn add_rug(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x12345667ffffffff);
@@ -434,6 +487,19 @@ mod f64 {
     }
 
     #[bench]
+    fn mul_softfloat_pure(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x12345667ffffffff);
+            let b = test::black_box(0x76543210aaaaaaaa);
+            let a = softfloat_pure::float64_t { v: a };
+            let b = softfloat_pure::float64_t { v: b };
+            let d = softfloat_pure::softfloat::f64_mul(a, b, 0, 0);
+            assert_eq!(d.0.v, 5231401168203612158u64);
+            d
+        });
+    }
+
+    #[bench]
     fn mul_rug(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x12345667ffffffff);
@@ -482,6 +548,19 @@ mod f64 {
             let b = float64_t { v: b };
             let d = unsafe { f64_div(a, b) };
             assert_eq!(d.v, 9218868437227405312u64);
+            d
+        });
+    }
+
+    #[bench]
+    fn div_softfloat_pure(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x76543210aaaaaaaa);
+            let b = test::black_box(0x12345667ffffffff);
+            let a = softfloat_pure::float64_t { v: a };
+            let b = softfloat_pure::float64_t { v: b };
+            let d = softfloat_pure::softfloat::f64_div(a, b, 0, 0);
+            assert_eq!(d.0.v, 9218868437227405312u64);
             d
         });
     }
