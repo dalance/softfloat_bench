@@ -11,9 +11,9 @@ softfloat_pure = { git = "https://github.com/HarryR/softfloat-pure.git" }
 simple-soft-float = "0.1.0"
 softfloat-sys = "0.1.2"
 rug = "1.10.0"
-half = "1.6.0"
+half = "2.5.0"
 rustc_apfloat = "0.2"
-const_soft_float = "0.1"
+const_soft_float = "0.1.4"
 
 [profile.bench]
 opt-level = 3

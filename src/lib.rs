@@ -1,5 +1,6 @@
 #![feature(test)]
 extern crate test;
+use half;
 use rug::Float;
 use rustc_apfloat::{
     ieee::{Double, Half, Quad, Single},
@@ -27,6 +28,19 @@ mod f16 {
             let b = F16::from_bits(b);
             let d = a.add(&b, None, None);
             assert_eq!(*d.bits(), 30292);
+            d
+        });
+    }
+
+    #[bench]
+    fn add_half(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x1234);
+            let b = test::black_box(0x7654);
+            let a = half::f16::from_bits(a);
+            let b = half::f16::from_bits(b);
+            let d = a + b;
+            assert_eq!(d.to_bits(), 30292);
             d
         });
     }
@@ -90,6 +104,19 @@ mod f16 {
     }
 
     #[bench]
+    fn mul_half(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x1234);
+            let b = test::black_box(0x7654);
+            let a = half::f16::from_bits(a);
+            let b = half::f16::from_bits(b);
+            let d = a * b;
+            assert_eq!(d.to_bits(), 19688);
+            d
+        });
+    }
+
+    #[bench]
     fn mul_softfloat_sys(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x1234);
@@ -143,6 +170,19 @@ mod f16 {
             let b = F16::from_bits(b);
             let d = a.div(&b, None, None);
             assert_eq!(*d.bits(), 31744);
+            d
+        });
+    }
+
+    #[bench]
+    fn div_half(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x7654);
+            let b = test::black_box(0x1234);
+            let a = half::f16::from_bits(a);
+            let b = half::f16::from_bits(b);
+            let d = a / b;
+            assert_eq!(d.to_bits(), 31744);
             d
         });
     }
