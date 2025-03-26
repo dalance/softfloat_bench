@@ -6,6 +6,16 @@ import argparse
 from matplotlib.ticker import ScalarFormatter
 import os
 
+# Library colors
+COLORS = {
+    'rug': '#1f77b4',
+    'rustc_apfloat': '#ff7f0e',
+    'simple_soft_float': '#2ca02c',
+    'softfloat_sys': '#d62728',
+    'softfloat_pure': '#9467bd',
+    'const_soft_float': '#8c564b'
+}
+
 def parse_benchmark_data(raw_data):
     """Parse the benchmark output format into structured data."""
     lines = raw_data.strip().split('\n')
@@ -36,15 +46,6 @@ def create_visualization(benchmarks, output_dir='benchmark_graphs'):
     precisions = sorted(list(set(b['precision'] for b in benchmarks)))
     operations = sorted(list(set(b['operation'] for b in benchmarks)))
     libraries = sorted(list(set(b['library'] for b in benchmarks)))
-
-    # Library colors
-    colors = {
-        'rug': '#8884d8',
-        'rustc_apfloat': '#82ca9d',
-        'simple_soft_float': '#ff8042',
-        'softfloat_sys': '#0088FE',
-        'softfloat_pure': '#FF5733',
-    }
 
     # Set the style
     plt.style.use('ggplot')
@@ -80,7 +81,7 @@ def create_visualization(benchmarks, output_dir='benchmark_graphs'):
                 values,
                 bar_width,
                 label=f"{library.replace('_', ' ')}",
-                color=colors.get(library, f'C{i}')
+                color=COLORS.get(library, f'C{i}')
             )
 
         # Set up the axes
@@ -153,7 +154,7 @@ def create_visualization(benchmarks, output_dir='benchmark_graphs'):
                 values,
                 bar_width,
                 label=f"{library.replace('_', ' ')}",
-                color=colors.get(library, f'C{j}')
+                color=COLORS.get(library, f'C{j}')
             )
 
         # Set up the axes
@@ -192,13 +193,6 @@ def create_zoomed_visualization(benchmarks, output_dir):
     # Exclude the simple_soft_float library which is much slower
     libraries = [lib for lib in sorted(list(set(b['library'] for b in benchmarks))) if lib != 'simple_soft_float']
 
-    # Library colors
-    colors = {
-        'rug': '#8884d8',
-        'rustc_apfloat': '#82ca9d',
-        'softfloat_sys': '#0088FE'
-    }
-
     # Create a combined visualization with subplots
     fig, axes = plt.subplots(nrows=len(operations), figsize=(14, 5 * len(operations)))
 
@@ -231,7 +225,7 @@ def create_zoomed_visualization(benchmarks, output_dir):
                 values,
                 bar_width,
                 label=f"{library.replace('_', ' ')}",
-                color=colors.get(library, f'C{j}')
+                color=COLORS.get(library, f'C{j}')
             )
 
             # Add value labels
