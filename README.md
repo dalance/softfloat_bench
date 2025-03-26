@@ -1,5 +1,6 @@
 # softfloat_bench
-Rust softfloat libarary benchmark
+
+Rust softfloat library benchmark
 
 * [softfloat-sys](https://crates.io/crates/softfloat-sys/)
 * [simple-soft-float](https://crates.io/crates/simple-soft-float)

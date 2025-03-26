@@ -38,7 +38,7 @@ def parse_benchmark_data(raw_data):
     return benchmarks
 
 def create_visualization(benchmarks, output_dir='benchmark_graphs'):
-    """Create visualizations for the benchmark data."""
+    """Create visualizations for the benchmark data with improved visual grouping."""
     # Ensure output directory exists
     os.makedirs(output_dir, exist_ok=True)
 
@@ -69,15 +69,33 @@ def create_visualization(benchmarks, output_dir='benchmark_graphs'):
         # Create the figure
         plt.figure(figsize=(12, 8))
 
-        # Set up the bar positions
+        # Set up the bar positions with better grouping
         bar_width = 0.15
-        index = np.arange(len(precisions))
+        group_gap = 0.3  # Gap between precision groups
+        num_libraries = len(libraries)
+
+        # Calculate x positions for each group
+        x_positions = []
+        tick_positions = []
+
+        for i, precision in enumerate(precisions):
+            group_start = i * (num_libraries * bar_width + group_gap)
+            tick_positions.append(group_start + (num_libraries * bar_width) / 2)
+
+            for j in range(num_libraries):
+                x_positions.append(group_start + j * bar_width)
 
         # Plot bars for each library
         for i, library in enumerate(libraries):
-            values = [plot_data[p][library] for p in precisions]
+            values = []
+            positions = []
+
+            for j, precision in enumerate(precisions):
+                values.append(plot_data[precision][library])
+                positions.append(x_positions[j * num_libraries + i])
+
             plt.bar(
-                index + i * bar_width,
+                positions,
                 values,
                 bar_width,
                 label=f"{library.replace('_', ' ')}",
@@ -88,7 +106,13 @@ def create_visualization(benchmarks, output_dir='benchmark_graphs'):
         plt.xlabel('Precision', fontsize=14)
         plt.ylabel('Time (ns/iter)', fontsize=14)
         plt.title(f'{operation.capitalize()} Operation Performance by Library and Precision', fontsize=16)
-        plt.xticks(index + bar_width * (len(libraries) - 1) / 2, precisions)
+        plt.xticks(tick_positions, precisions)
+
+        # Add visual separation between groups
+        for i in range(len(precisions) - 1):
+            group_boundary = (tick_positions[i] + tick_positions[i+1]) / 2
+            plt.axvline(x=group_boundary, color='gray', linestyle='--', alpha=0.3)
+
         plt.legend()
 
         # Set log scale for y-axis with proper formatting
@@ -97,9 +121,11 @@ def create_visualization(benchmarks, output_dir='benchmark_graphs'):
         plt.gca().yaxis.set_major_formatter(ScalarFormatter())
 
         # Add value labels on top of each bar
-        for i, library in enumerate(libraries):
-            for j, precision in enumerate(precisions):
+        for i, precision in enumerate(precisions):
+            for j, library in enumerate(libraries):
                 value = plot_data[precision][library]
+                position = x_positions[i * num_libraries + j]
+
                 if value > 0:  # Only label non-zero bars
                     # Format large numbers with commas
                     if value < 1000:
@@ -108,7 +134,7 @@ def create_visualization(benchmarks, output_dir='benchmark_graphs'):
                         label_text = f"{value:,}"
 
                     plt.text(
-                        j + i * bar_width,
+                        position,
                         value * 1.1,  # Position slightly above the bar
                         label_text,
                         ha='center',
@@ -142,15 +168,33 @@ def create_visualization(benchmarks, output_dir='benchmark_graphs'):
                 else:
                     plot_data[precision][library] = 0
 
-        # Set up the bar positions
+        # Set up the bar positions with better grouping for subplots
         bar_width = 0.15
-        index = np.arange(len(precisions))
+        group_gap = 0.3  # Gap between precision groups
+        num_libraries = len(libraries)
+
+        # Calculate x positions for each group
+        x_positions = []
+        tick_positions = []
+
+        for j, precision in enumerate(precisions):
+            group_start = j * (num_libraries * bar_width + group_gap)
+            tick_positions.append(group_start + (num_libraries * bar_width) / 2)
+
+            for k in range(num_libraries):
+                x_positions.append(group_start + k * bar_width)
 
         # Plot bars for each library
         for j, library in enumerate(libraries):
-            values = [plot_data[p][library] for p in precisions]
+            values = []
+            positions = []
+
+            for k, precision in enumerate(precisions):
+                values.append(plot_data[precision][library])
+                positions.append(x_positions[k * num_libraries + j])
+
             ax.bar(
-                index + j * bar_width,
+                positions,
                 values,
                 bar_width,
                 label=f"{library.replace('_', ' ')}",
@@ -159,10 +203,15 @@ def create_visualization(benchmarks, output_dir='benchmark_graphs'):
 
         # Set up the axes
         ax.set_xlabel('Precision', fontsize=12)
-        ax.set_ylabel('Time (ns/iter)', fontsize=12)
+        ax.set_ylabel('log Time (ns/iter)', fontsize=12)
         ax.set_title(f'{operation.capitalize()} Operation Performance', fontsize=14)
-        ax.set_xticks(index + bar_width * (len(libraries) - 1) / 2)
+        ax.set_xticks(tick_positions)
         ax.set_xticklabels(precisions)
+
+        # Add visual separation between groups
+        for j in range(len(precisions) - 1):
+            group_boundary = (tick_positions[j] + tick_positions[j+1]) / 2
+            ax.axvline(x=group_boundary, color='gray', linestyle='--', alpha=0.3)
 
         # Set log scale for y-axis with proper formatting
         ax.set_yscale('log')
@@ -180,88 +229,6 @@ def create_visualization(benchmarks, output_dir='benchmark_graphs'):
     # Adjust layout and save
     plt.tight_layout()
     plt.savefig(f"{output_dir}/combined_benchmark.png", dpi=300)
-    plt.close()
-
-    # Create a "zoomed-in" version excluding the slowest library
-    create_zoomed_visualization(benchmarks, output_dir)
-
-def create_zoomed_visualization(benchmarks, output_dir):
-    """Create visualizations excluding the slowest library for better comparison."""
-    # Extract unique values
-    precisions = sorted(list(set(b['precision'] for b in benchmarks)))
-    operations = sorted(list(set(b['operation'] for b in benchmarks)))
-    # Exclude the simple_soft_float library which is much slower
-    libraries = [lib for lib in sorted(list(set(b['library'] for b in benchmarks))) if lib != 'simple_soft_float']
-
-    # Create a combined visualization with subplots
-    fig, axes = plt.subplots(nrows=len(operations), figsize=(14, 5 * len(operations)))
-
-    for i, operation in enumerate(operations):
-        ax = axes[i] if len(operations) > 1 else axes
-
-        # Filter data for this operation
-        op_data = [b for b in benchmarks if b['operation'] == operation and b['library'] in libraries]
-
-        # Prepare data for plotting
-        plot_data = {}
-        for precision in precisions:
-            plot_data[precision] = {}
-            for library in libraries:
-                matching = [b for b in op_data if b['precision'] == precision and b['library'] == library]
-                if matching:
-                    plot_data[precision][library] = matching[0]['time']
-                else:
-                    plot_data[precision][library] = 0
-
-        # Set up the bar positions
-        bar_width = 0.2  # Wider bars with fewer libraries
-        index = np.arange(len(precisions))
-
-        # Plot bars for each library
-        for j, library in enumerate(libraries):
-            values = [plot_data[p][library] for p in precisions]
-            ax.bar(
-                index + j * bar_width,
-                values,
-                bar_width,
-                label=f"{library.replace('_', ' ')}",
-                color=COLORS.get(library, f'C{j}')
-            )
-
-            # Add value labels
-            for k, value in enumerate(values):
-                if value > 0:
-                    ax.text(
-                        k + j * bar_width,
-                        value * 1.1,
-                        str(value),
-                        ha='center',
-                        va='bottom',
-                        rotation=90,
-                        fontsize=9
-                    )
-
-        # Set up the axes
-        ax.set_xlabel('Precision', fontsize=12)
-        ax.set_ylabel('Time (ns/iter)', fontsize=12)
-        ax.set_title(f'{operation.capitalize()} Operation Performance (Excluding simple_soft_float)', fontsize=14)
-        ax.set_xticks(index + bar_width * (len(libraries) - 1) / 2)
-        ax.set_xticklabels(precisions)
-
-        # Use linear scale for better comparison without the extreme outliers
-        ax.grid(True, which="both", ls="-", alpha=0.2)
-
-        # Only add legend to the first subplot to avoid redundancy
-        if i == 0 and len(operations) > 1:
-            ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
-
-    # Add overall legend for the combined plot
-    if len(operations) == 1:
-        axes.legend(loc='upper left', bbox_to_anchor=(1, 1))
-
-    # Adjust layout and save
-    plt.tight_layout()
-    plt.savefig(f"{output_dir}/zoomed_benchmark.png", dpi=300)
     plt.close()
 
 def main():
