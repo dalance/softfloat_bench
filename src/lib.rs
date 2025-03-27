@@ -1,10 +1,16 @@
 #![feature(test)]
 extern crate test;
+use half;
 use rug::Float;
 use rustc_apfloat::{
     ieee::{Double, Half, Quad, Single},
     Round,
 };
+use const_soft_float::{
+    soft_f32::SoftF32,
+    soft_f64::SoftF64
+};
+use softfloat_pure;
 use simple_soft_float::{F128, F16, F32, F64};
 use softfloat_sys::*;
 use std::ops::{Add, Div, Mul};
@@ -22,6 +28,19 @@ mod f16 {
             let b = F16::from_bits(b);
             let d = a.add(&b, None, None);
             assert_eq!(*d.bits(), 30292);
+            d
+        });
+    }
+
+    #[bench]
+    fn add_half(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x1234);
+            let b = test::black_box(0x7654);
+            let a = half::f16::from_bits(a);
+            let b = half::f16::from_bits(b);
+            let d = a + b;
+            assert_eq!(d.to_bits(), 30292);
             d
         });
     }
@@ -85,6 +104,19 @@ mod f16 {
     }
 
     #[bench]
+    fn mul_half(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x1234);
+            let b = test::black_box(0x7654);
+            let a = half::f16::from_bits(a);
+            let b = half::f16::from_bits(b);
+            let d = a * b;
+            assert_eq!(d.to_bits(), 19688);
+            d
+        });
+    }
+
+    #[bench]
     fn mul_softfloat_sys(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x1234);
@@ -138,6 +170,19 @@ mod f16 {
             let b = F16::from_bits(b);
             let d = a.div(&b, None, None);
             assert_eq!(*d.bits(), 31744);
+            d
+        });
+    }
+
+    #[bench]
+    fn div_half(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x7654);
+            let b = test::black_box(0x1234);
+            let a = half::f16::from_bits(a);
+            let b = half::f16::from_bits(b);
+            let d = a / b;
+            assert_eq!(d.to_bits(), 31744);
             d
         });
     }
@@ -218,6 +263,32 @@ mod f32 {
     }
 
     #[bench]
+    fn add_softfloat_pure(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x12345667);
+            let b = test::black_box(0x76543210);
+            let a = softfloat_pure::float32_t { v: a };
+            let b = softfloat_pure::float32_t { v: b };
+            let d = softfloat_pure::softfloat::f32_add(a, b, 0, 0);
+            assert_eq!(d.0.v, 1985229328);
+            d
+        });
+    }
+
+    #[bench]
+    fn add_const_soft_float(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x12345667);
+            let b = test::black_box(0x76543210);
+            let a = SoftF32(f32::from_bits(a));
+            let b = SoftF32(f32::from_bits(b));
+            let d = a.add(b).to_bits();
+            assert_eq!(d, 1985229328);
+            d
+        });
+    }
+
+    #[bench]
     fn add_rug(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x12345667);
@@ -271,6 +342,32 @@ mod f32 {
     }
 
     #[bench]
+    fn mul_softfloat_pure(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x12345667);
+            let b = test::black_box(0x76543210);
+            let a = softfloat_pure::float32_t { v: a };
+            let b = softfloat_pure::float32_t { v: b };
+            let d = softfloat_pure::softfloat::f32_mul(a, b, 0, 0);
+            assert_eq!(d.0.v, 1226144465);
+            d
+        });
+    }
+
+    #[bench]
+    fn mul_const_soft_float(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x12345667);
+            let b = test::black_box(0x76543210);
+            let a = SoftF32(f32::from_bits(a));
+            let b = SoftF32(f32::from_bits(b));
+            let d = a.mul(b).to_bits();
+            assert_eq!(d, 1226144465);
+            d
+        });
+    }
+
+    #[bench]
     fn mul_rug(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x12345667);
@@ -319,6 +416,32 @@ mod f32 {
             let b = float32_t { v: b };
             let d = unsafe { f32_div(a, b) };
             assert_eq!(d.v, 2139095040);
+            d
+        });
+    }
+
+    #[bench]
+    fn div_softfloat_pure(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x76543210);
+            let b = test::black_box(0x12345667);
+            let a = softfloat_pure::float32_t { v: a };
+            let b = softfloat_pure::float32_t { v: b };
+            let d = softfloat_pure::softfloat::f32_div(a, b, 0, 0);
+            assert_eq!(d.0.v, 2139095040);
+            d
+        });
+    }
+
+    #[bench]
+    fn div_const_soft_float(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x76543210);
+            let b = test::black_box(0x12345667);
+            let a = SoftF32(f32::from_bits(a));
+            let b = SoftF32(f32::from_bits(b));
+            let d = a.div(b).to_bits();
+            assert_eq!(d, 2139095040);
             d
         });
     }
@@ -381,6 +504,32 @@ mod f64 {
     }
 
     #[bench]
+    fn add_softfloat_pure(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x12345667ffffffff);
+            let b = test::black_box(0x76543210aaaaaaaa);
+            let a = softfloat_pure::float64_t { v: a };
+            let b = softfloat_pure::float64_t { v: b };
+            let d = softfloat_pure::softfloat::f64_add(a, b, 0, 0);
+            assert_eq!(d.0.v, 8526495041683368618u64);
+            d
+        });
+    }
+
+    #[bench]
+    fn add_const_soft_float(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x12345667ffffffff);
+            let b = test::black_box(0x76543210aaaaaaaa);
+            let a = SoftF64(f64::from_bits(a));
+            let b = SoftF64(f64::from_bits(b));
+            let d = a.add(b).to_bits();
+            assert_eq!(d, 8526495041683368618u64);
+            d
+        });
+    }
+
+    #[bench]
     fn add_rug(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x12345667ffffffff);
@@ -434,6 +583,32 @@ mod f64 {
     }
 
     #[bench]
+    fn mul_softfloat_pure(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x12345667ffffffff);
+            let b = test::black_box(0x76543210aaaaaaaa);
+            let a = softfloat_pure::float64_t { v: a };
+            let b = softfloat_pure::float64_t { v: b };
+            let d = softfloat_pure::softfloat::f64_mul(a, b, 0, 0);
+            assert_eq!(d.0.v, 5231401168203612158u64);
+            d
+        });
+    }
+
+    #[bench]
+    fn mul_const_soft_float(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x12345667ffffffff);
+            let b = test::black_box(0x76543210aaaaaaaa);
+            let a = SoftF64(f64::from_bits(a));
+            let b = SoftF64(f64::from_bits(b));
+            let d = a.mul(b).to_bits();
+            assert_eq!(d, 5231401168203612158u64);
+            d
+        });
+    }
+
+    #[bench]
     fn mul_rug(b: &mut Bencher) {
         b.iter(|| {
             let a = test::black_box(0x12345667ffffffff);
@@ -482,6 +657,32 @@ mod f64 {
             let b = float64_t { v: b };
             let d = unsafe { f64_div(a, b) };
             assert_eq!(d.v, 9218868437227405312u64);
+            d
+        });
+    }
+
+    #[bench]
+    fn div_softfloat_pure(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x76543210aaaaaaaa);
+            let b = test::black_box(0x12345667ffffffff);
+            let a = softfloat_pure::float64_t { v: a };
+            let b = softfloat_pure::float64_t { v: b };
+            let d = softfloat_pure::softfloat::f64_div(a, b, 0, 0);
+            assert_eq!(d.0.v, 9218868437227405312u64);
+            d
+        });
+    }
+
+    #[bench]
+    fn div_const_soft_float(b: &mut Bencher) {
+        b.iter(|| {
+            let a = test::black_box(0x76543210aaaaaaaa);
+            let b = test::black_box(0x12345667ffffffff);
+            let a = SoftF64(f64::from_bits(a));
+            let b = SoftF64(f64::from_bits(b));
+            let d = a.div(b).to_bits();
+            assert_eq!(d, 9218868437227405312u64);
             d
         });
     }
